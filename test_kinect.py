@@ -1,55 +1,81 @@
+"""
+Kinect Xbox 360 test and demo script.
+
+Initializes the Kinect sensor, captures RGB and depth frames,
+and displays them in OpenCV windows. Press 'q' to quit.
+
+Consolidates the former test_kinect.py and quickTest.py.
+"""
+
+import sys
 import numpy as np
-import cv2
-from kinect_wrapper import PyKinectCapture
+
+try:
+    import cv2
+except ImportError:
+    print("ERROR: opencv-python is required. Install with: pip install opencv-python")
+    sys.exit(1)
+
+try:
+    from kinect_wrapper import PyKinectCapture
+except ImportError:
+    print(
+        "ERROR: kinect_wrapper module not found.\n"
+        "Build it first with: python setup.py build_ext --inplace\n"
+        "Make sure libfreenect is installed (brew install libfreenect on macOS)."
+    )
+    sys.exit(1)
+
 
 def main():
-    # Create an instance of PyKinectCapture
+    """Run the Kinect capture demo."""
     kinect = PyKinectCapture()
 
-    # Initialize the Kinect
     if not kinect.init():
-        print("Failed to initialize Kinect")
+        print(
+            "Failed to initialize Kinect.\n"
+            "Check that:\n"
+            "  - The Kinect is plugged in (USB + power)\n"
+            "  - You have permission to access USB devices\n"
+            "  - libfreenect is installed correctly"
+        )
         return
 
     print("Kinect initialized successfully")
+    print("Press 'q' to quit")
 
-    # Create windows for displaying RGB and depth images
     cv2.namedWindow("RGB", cv2.WINDOW_NORMAL)
     cv2.namedWindow("Depth", cv2.WINDOW_NORMAL)
 
     try:
         while True:
-            # Get frames from the Kinect
             rgb, depth = kinect.get_frames()
 
             if rgb is not None and depth is not None:
-                # Convert RGB from BGR to RGB color space
-                rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+                rgb_display = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
 
-                # Normalize depth for display
-                depth_display = cv2.normalize(depth, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+                depth_display = cv2.normalize(
+                    depth, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U
+                )
                 depth_colormap = cv2.applyColorMap(depth_display, cv2.COLORMAP_JET)
 
-                # Display the images
-                cv2.imshow("RGB", rgb)
+                cv2.imshow("RGB", rgb_display)
                 cv2.imshow("Depth", depth_colormap)
 
-                # Print some information about the frames
-                print(f"RGB shape: {rgb.shape}, Depth shape: {depth.shape}")
-                print(f"RGB dtype: {rgb.dtype}, Depth dtype: {depth.dtype}")
-                print(f"RGB min: {rgb.min()}, max: {rgb.max()}")
-                print(f"Depth min: {depth.min()}, max: {depth.max()}")
+                print(
+                    f"RGB: {rgb.shape} {rgb.dtype} [{rgb.min()}-{rgb.max()}]  "
+                    f"Depth: {depth.shape} {depth.dtype} [{depth.min()}-{depth.max()}]"
+                )
 
-            # Break the loop if 'q' is pressed
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
     except KeyboardInterrupt:
-        print("Interrupted by user")
+        print("\nInterrupted by user")
 
     finally:
-        # Close all OpenCV windows
         cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()
