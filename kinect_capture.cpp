@@ -17,6 +17,7 @@ private:
 
     pthread_t freenect_thread;
     std::atomic<bool> die;
+    bool thread_started;  // pthread_join only a thread that was created
 
     pthread_mutex_t buffer_mutex;
     pthread_cond_t frame_cond;
@@ -44,7 +45,7 @@ private:
     }
 
 public:
-    KinectCapture() : f_ctx(nullptr), f_dev(nullptr), die(false) {
+    KinectCapture() : f_ctx(nullptr), f_dev(nullptr), die(false), thread_started(false) {
         pthread_mutex_init(&buffer_mutex, nullptr);
         pthread_cond_init(&frame_cond, nullptr);
         depth_buffer.resize(640 * 480 * 2);  // 16-bit depth
@@ -53,7 +54,9 @@ public:
 
     ~KinectCapture() {
         die = true;
-        pthread_join(freenect_thread, nullptr);
+        if (thread_started) {
+            pthread_join(freenect_thread, nullptr);
+        }
         if (f_dev) {
             freenect_stop_depth(f_dev);
             freenect_stop_video(f_dev);
@@ -77,6 +80,7 @@ public:
         if (freenect_open_device(f_ctx, &f_dev, 0) < 0) {
             std::cerr << "Could not open device" << std::endl;
             freenect_shutdown(f_ctx);
+            f_ctx = nullptr;  // already shut down: the destructor must not do it again
             return false;
         }
 
@@ -89,7 +93,7 @@ public:
         freenect_start_depth(f_dev);
         freenect_start_video(f_dev);
 
-        pthread_create(&freenect_thread, nullptr, freenect_threadfunc, this);
+        thread_started = pthread_create(&freenect_thread, nullptr, freenect_threadfunc, this) == 0;
         return true;
     }
 
