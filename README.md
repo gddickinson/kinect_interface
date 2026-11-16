@@ -41,6 +41,7 @@ Python API               PyKinectCapture class
 | `kinect_wrapper.pyx` | Cython wrapper defining `PyKinectCapture` class |
 | `setup.py` | Build configuration linking against libfreenect and libusb |
 | `test_kinect.py` | Example script: captures and displays RGB + JET-colorized depth |
+| `depth_display.py` | Driver-free depth colouring (`colorize_depth`, `normalize_depth`, `jet_lut`) used by `test_kinect.py` |
 | `_archive/quickTest.py` | Minimal test script (archived; `test_kinect.py` replaces it) |
 
 ## Prerequisites
@@ -118,6 +119,21 @@ Displays two windows (RGB and Depth) and prints frame shape/dtype/min/max info t
 |--------|-------|-------|-------|
 | RGB | (480, 640, 3) | uint8 | 0-255 per channel |
 | Depth | (480, 640) | uint16 | millimeters from sensor |
+
+## Web interface
+
+A showcase site: code explorer (highlighted C++/Cython/Python with search), "How it works" with every statement linked
+to the file and line it comes from, and a **depth colouring demo** on SYNTHETIC depth frames (the repo has no recorded
+frames): the depth display of `test_kinect.py`, now in `depth_display.py` (min-max to 8 bits + OpenCV JET), ported to
+JavaScript and matched pixel for pixel against OpenCV in the tests. The web app never imports the Kinect driver.
+
+`pip install -r requirements-web.txt && python run_web.py` (http://127.0.0.1:8261). `python scripts/build_static.py`
+builds the GitHub Pages copy (`.github/workflows/pages.yml`, on push to `main`). Tests: `python -m pytest -q tests`
+(also compiles `kinect_capture.cpp` against a stub libfreenect) and `node web/static/depth_engine.test.mjs`.
+
+| Home | How it works | Source viewer | Depth demo |
+|---|---|---|---|
+| ![Home page](docs/img/home.png) | ![How it works](docs/img/how.png) | ![Source viewer](docs/img/source.png) | ![Depth colouring demo](docs/img/demo.png) |
 
 ## Related Projects
 
