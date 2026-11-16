@@ -9,7 +9,7 @@ This project wraps the libfreenect library in a clean, performant pipeline: C++ 
 ### Features
 
 - Real-time 640x480 RGB and 16-bit depth frame capture
-- Thread-safe double buffering with pthread mutex/condition variable synchronization
+- Thread-safe frame hand-off: one buffer per stream, guarded by a pthread mutex and condition variable
 - Automatic Kinect device discovery and initialization
 - Depth data in millimeters (hardware native format)
 - Frames returned as NumPy arrays (`uint8` RGB, `uint16` depth)
@@ -41,7 +41,7 @@ Python API               PyKinectCapture class
 | `kinect_wrapper.pyx` | Cython wrapper defining `PyKinectCapture` class |
 | `setup.py` | Build configuration linking against libfreenect and libusb |
 | `test_kinect.py` | Example script: captures and displays RGB + JET-colorized depth |
-| `quickTest.py` | Minimal test script |
+| `_archive/quickTest.py` | Minimal test script (archived; `test_kinect.py` replaces it) |
 
 ## Prerequisites
 
